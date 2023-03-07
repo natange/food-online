@@ -4,9 +4,27 @@ from .forms import UserForm
 from .models import User, UserProfile
 from django.contrib import messages, auth
 from vendor.forms import VendorForm
+from .utils import detectUser
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
 
 
 # Create your views here.
+# restrict the vendor form accessing the customer page
+def check_role_vendor(user):
+    if user.role == 0:
+        return True
+    else:
+        raise PermissionDenied
+
+
+# restrict the customer form accessing the vendor page
+def check_role_customer(user):
+    if user.role == 1:
+        return True
+    else:
+        raise PermissionDenied
+
 
 def registerUser(request):
     # return HttpResponse('this a test')
@@ -100,7 +118,7 @@ def registerVendor(request):
 def login(request):
     if request.user.is_authenticated:
         messages.warning(request, 'you are already logged in.')
-        return redirect('dashboard')
+        return redirect('myAccount')
     elif request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
@@ -108,7 +126,7 @@ def login(request):
         if user is not None:
             auth.login(request, user)
             messages.success(request, 'you are now logged in.')
-            return redirect('dashboard')
+            return redirect('myAccount')
         else:
             messages.error(request, 'Invalid login credentials')
             return redirect('login')
@@ -121,5 +139,20 @@ def logout(request):
     return render(request, 'accounts/login.html')
 
 
-def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+@login_required(login_url='login')
+def myAccount(request):
+    user = request.user
+    redirect_url = detectUser(user)
+    return redirect(redirect_url)
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_customer)
+def custDashboard(request):
+    return render(request, 'accounts/custDashboard.html')
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def vendorDashboard(request):
+    return render(request, 'accounts/vendorDashboard.html')
