@@ -1,3 +1,5 @@
-env
-
-/foodOnline_main/.env
+.venv
+/old/*
+/src/.env
+/src/db.sqlite3
+/docs/notes.md
