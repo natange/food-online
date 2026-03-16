@@ -3,3 +3,8 @@
 /src/.env
 /src/db.sqlite3
 /docs/notes.md
+
+
+__pycache__/
+*.py[cod]
+*$py.class
